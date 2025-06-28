@@ -23,7 +23,7 @@ function buildVoteEmbed(userVotes) {
     const lines = [];
 
     for (const {username, voteEmoji} of userVotes.values()) {
-        lines.push(`${voteEmoji} @${username}`);
+        lines.push(`${voteEmoji} ${username}`);
     }
 
     return new EmbedBuilder()
@@ -44,13 +44,13 @@ client.on(Events.InteractionCreate, async interaction => {
 
         const body = mentions.map(u => `❌ ${u}`).join('\n');
 
-        const embed = new EmbedBuilder()
+        let embed = new EmbedBuilder()
             .setDescription(`\n\n${body}\n\n`)
-            .setColor('#f04a4a')
+            .setColor('#f04a4a');
 
         // AFTER replying with the message and embed
         const reply = await interaction.reply({
-            content: '<:ons:1388078229734035537>  <:taks:1388078418800934985> <:ons:1388078229734035537>',
+            content: 'Adakah malam ini \n\n <:ons:1388078229734035537>  <:taks:1388078418800934985> <:ons:1388078229734035537>',
             embeds: [embed]
         });
         const sentMessage = await interaction.fetchReply(); // use this to avoid the deprecation warning
@@ -59,6 +59,22 @@ client.on(Events.InteractionCreate, async interaction => {
         await sentMessage.react('❌');
 
         const userVotes = new Map();
+
+        mentions.forEach(u => {
+            // Extract username from mention string
+            const mentionMatch = u.match(/^<@!?(\d+)>$/);
+            
+            const userId = mentionMatch ? mentionMatch[1] : null;
+
+            if (userId) {
+                userVotes.set(userId, {
+                    voteEmoji: '❌',
+                    username: u.replace(`/^<@!?`, '@').replace(`/>$/`, '')
+                });
+            }
+        });
+
+        embed = buildVoteEmbed(userVotes);
 
         const collector = sentMessage.createReactionCollector({
             filter: (reaction, user) =>
@@ -69,32 +85,41 @@ client.on(Events.InteractionCreate, async interaction => {
         collector.on('collect', async (reaction, user) => {
             console.log('collector on');
             const emoji = reaction.emoji.name;
-            const prevEmoji = userVotes.get(user.id);
+            // const prevEmoji = userVotes.get(user.id);
+            const prevVote = userVotes.get(user.id);
+            console.log(prevVote)
 
             // If user already voted with the other emoji, remove their previous reaction
-            if (prevEmoji && prevEmoji !== emoji) {
-                const prevReaction = sentMessage.reactions.cache.get(prevEmoji);
+            if (prevVote && prevVote.voteEmoji !== emoji) {
+                console.log('1');
+                const prevReaction = sentMessage.reactions.cache.get(prevVote.voteEmoji);
+                // console.log(prevReaction)
                 if (prevReaction) {
                     await prevReaction.users.remove(user.id);
-                    console.log(`🧹 ${user.username} switched from ${prevEmoji} to ${emoji}`);
+                    console.log(`🧹 ${user.username} switched from ${prevVote} to ${emoji}`);
                 }
-            } else if (!prevEmoji) {
+            } else if (!prevVote) {
+                console.log('2');
                 console.log(`✅ ${user.username} voted ${emoji}`);
             }
 
-            const display = user.tag; // tag = full name#0000
+            // const display = user.username; // tag = full name#0000
+            
             userVotes.set(user.id, { 
                 voteEmoji: emoji, 
-                username: user.tag 
+                username: user.toString() 
             });
+
+            const updatedEmbed = buildVoteEmbed(userVotes);
+            await sentMessage.edit({ embeds: [updatedEmbed] });
 
             // userVotes.set(user.id, emoji);
         });
 
         collector.on('end', () => {
             const results = { '✅': 0, '❌': 0 };
-            for (const vote of userVotes.values()) {
-                if (results[vote] !== undefined) results[vote]++;
+            for (const {voteEmoji} of userVotes.values()) {
+                if (results[voteEmoji] !== undefined) results[voteEmoji]++;
             }
 
             console.log('📊 Voting complete. Tally:');
