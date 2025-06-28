@@ -19,6 +19,18 @@ client.once('ready', () => {
     });
 });
 
+function buildVoteEmbed(userVotes) {
+    const lines = [];
+
+    for (const {username, voteEmoji} of userVotes.values()) {
+        lines.push(`${voteEmoji} @${username}`);
+    }
+
+    return new EmbedBuilder()
+        .setDescription(`\n\n${lines.join('\n')}\n\n`)
+        .setColor('#f04a4a');
+}
+
 client.on(Events.InteractionCreate, async interaction => {
     if (!interaction.isChatInputCommand()) return;
 
@@ -51,7 +63,7 @@ client.on(Events.InteractionCreate, async interaction => {
         const collector = sentMessage.createReactionCollector({
             filter: (reaction, user) =>
                 !user.bot && ['✅', '❌'].includes(reaction.emoji.name),
-            time: 2 * 60 * 1000
+            time: 24 * 60 * 60 * 1000
         });
 
         collector.on('collect', async (reaction, user) => {
@@ -70,7 +82,13 @@ client.on(Events.InteractionCreate, async interaction => {
                 console.log(`✅ ${user.username} voted ${emoji}`);
             }
 
-            userVotes.set(user.id, emoji);
+            const display = user.tag; // tag = full name#0000
+            userVotes.set(user.id, { 
+                voteEmoji: emoji, 
+                username: user.tag 
+            });
+
+            // userVotes.set(user.id, emoji);
         });
 
         collector.on('end', () => {
