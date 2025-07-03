@@ -6,6 +6,11 @@ const commands = [
   new SlashCommandBuilder()
     .setName('ons')
     .setDescription('Replies with ons!')
+    .addStringOption(opt => 
+      opt.setName('game')
+      .setDescription('Name of steam game (optional)')
+      .setRequired(false)
+    )
     .addUserOption(opt =>
         opt.setName('user1')
         .setDescription(`Who's onboard? @1`)

@@ -10,6 +10,8 @@ require("dotenv").config(); // Load environment variables from .env file
 const express = require("express");
 const app = express();
 
+const fetch = require('node-fetch');
+
 app.get("/", (req, res) => {
     res.send("Bot is online");
 });
@@ -48,11 +50,37 @@ function buildVoteEmbed(userVotes) {
         .setColor("#f04a4a");
 }
 
+async function searchSteamGame(gameName) {
+    const query = encodeURIComponent(gameName);
+    const url = `https://store.steampowered.com/api/storesearch/?term=${query}&cc=us&l=en`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.items && data.items.length > 0) {
+        const top = data.items[0];
+        return {
+            name: top.name,
+            url: `https://store.steampowered.com/app/${top.id}`,
+            image: top.tiny_image
+        };
+    }
+
+    return null;
+}
+
 client.on(Events.InteractionCreate, async (interaction) => {
     if (!interaction.isChatInputCommand()) return;
 
     if (interaction.commandName === "ons") {
         const mentions = [];
+        const gameName = interaction.options.getString('game');
+
+        let game = null;
+
+        if (gameName) {
+            game = await searchSteamGame(gameName);
+        }
 
         ["user1", "user2", "user3"].forEach((key) => {
             const u = interaction.options.getUser(key);
@@ -65,10 +93,20 @@ client.on(Events.InteractionCreate, async (interaction) => {
             .setDescription(`\n\n${body}\n\n`)
             .setColor("#f04a4a");
 
+        if (game) {
+            embed.setTitle(`🎮 ${game.name}`)
+                .setURL(game.url)
+                .setThumbnail(game.image)
+                .setFields({
+                    name: "Steam Page",
+                    value: `[Click here to view ${game.name}](${game.url})`
+                })
+        }
+
         // AFTER replying with the message and embed
         const reply = await interaction.reply({
             content:
-                "<:ons:1388078229734035537>  <:taks:1388078418800934985> <:ons:1388078229734035537>",
+                "<:ons:1388078229734035537> <:taks:1388078418800934985> <:ons:1388078229734035537>",
             embeds: [embed],
         });
         const sentMessage = await interaction.fetchReply();
