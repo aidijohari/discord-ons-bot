@@ -94,7 +94,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             .setColor("#f04a4a");
 
         if (game) {
-            embed.setTitle(`🎮 ${game.name}`)
+            embed.setTitle(`<:gamecontr:1390295965054796060> ${game.name}`)
                 .setURL(game.url)
                 .setThumbnail(game.image)
                 .setFields({
