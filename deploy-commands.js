@@ -1,4 +1,4 @@
-const { REST, Routes, SlashCommandBuilder } = require('discord.js');
+const { REST, Routes, SlashCommandBuilder, StringSelectMenuBuilder } = require('discord.js');
 const dotenv = require('dotenv');
 dotenv.config(); // loads .env file
 
