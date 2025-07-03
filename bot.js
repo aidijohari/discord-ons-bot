@@ -149,6 +149,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
             console.log(`📊 Voting complete. Post: ${postUrl} \n\nTally:`);
             console.log(`✅ Yes: ${results["✅"]}`);
             console.log(`❌ No:  ${results["❌"]}`);
+
+            res.send(`📊 Voting complete. Post: ${postUrl} \n\nTally:`);
+            res.send(`✅ Yes: ${results["✅"]}`);
+            res.send(`❌ No:  ${results["❌"]}`);
         });
 
         // await interaction.reply({embeds: [embed] });
