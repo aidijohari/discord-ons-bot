@@ -9,7 +9,7 @@ const commands = [
     .addStringOption(opt => 
       opt.setName('game')
       .setDescription('Name of steam game (optional)')
-      .setRequired(false)
+      .setRequired(true)
     )
     .addUserOption(opt =>
         opt.setName('user1')
