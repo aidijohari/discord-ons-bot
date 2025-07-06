@@ -7,18 +7,19 @@ const {
 } = require("discord.js");
 require("dotenv").config(); // Load environment variables from .env file
 
-// const express = require("express");
-// const app = express();
+const express = require("express");
+const app = express();
 
 // const fetch = require('node-fetch');
+const PORT = process.env.PORT || 3000
 
-// app.get("/", (req, res) => {
-//     res.send("Bot is online");
-// });
+app.get("/", (req, res) => {
+    res.send("🤖 Bot is online");
+});
 
-// app.listen(3000, () => {
-//     console.log("Server is running on port 3000");
-// });
+app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server is running on port ${PORT}`);
+});
 
 const client = new Client({
     intents: [
