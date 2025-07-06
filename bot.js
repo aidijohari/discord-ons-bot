@@ -7,10 +7,10 @@ const {
 } = require("discord.js");
 require("dotenv").config(); // Load environment variables from .env file
 
-const express = require("express");
-const app = express();
+// const express = require("express");
+// const app = express();
 
-const fetch = require('node-fetch');
+// const fetch = require('node-fetch');
 
 app.get("/", (req, res) => {
     res.send("Bot is online");
