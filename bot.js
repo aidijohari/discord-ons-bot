@@ -12,13 +12,13 @@ require("dotenv").config(); // Load environment variables from .env file
 
 // const fetch = require('node-fetch');
 
-app.get("/", (req, res) => {
-    res.send("Bot is online");
-});
+// app.get("/", (req, res) => {
+//     res.send("Bot is online");
+// });
 
-app.listen(3000, () => {
-    console.log("Server is running on port 3000");
-});
+// app.listen(3000, () => {
+//     console.log("Server is running on port 3000");
+// });
 
 const client = new Client({
     intents: [
