@@ -10,10 +10,10 @@ require("dotenv").config(); // Load environment variables from .env file
 const express = require("express");
 const app = express();
 
-const fetch = require('node-fetch');
+const fetch = require("node-fetch");
 
 app.get("/", (req, res) => {
-    res.send("Bot is online");
+    res.send("🤖 Bot is online");
 });
 
 app.listen(3000, () => {
@@ -56,13 +56,15 @@ function buildVoteEmbed(userVotes, game = null) {
 
 function gameEmbed(embed, game) {
     if (game) {
-        embed.setTitle(`<:gamecontr:1390295965054796060> ${game.name}`)
+        embed
+            .setTitle(`<:gamecontr:1390295965054796060> ${game.name}`)
             .setURL(game.url)
             .setThumbnail(game.image)
             .addFields({
                 name: "Steam Page",
-                value: `[Click here to view ${game.name}](${game.url})`
-            });
+                value: `[Click here to view ${game.name}](${game.url})`,
+            })
+            .setImage(game.hero);
     }
 
     return embed;
@@ -80,7 +82,8 @@ async function searchSteamGame(gameName) {
         return {
             name: top.name,
             url: `https://store.steampowered.com/app/${top.id}`,
-            image: top.tiny_image
+            image: top.tiny_image,
+            hero: `https://cdn.cloudflare.steamstatic.com/steam/apps/${top.id}/header.jpg`,
         };
     }
 
