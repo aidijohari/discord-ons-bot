@@ -63,7 +63,8 @@ function gameEmbed(embed, game) {
             .addFields({
                 name: "Steam Page",
                 value: `[Click here to view ${game.name}](${game.url})`
-            });
+            })
+            .setImage(game.hero);
     }
 
     return embed;
@@ -81,7 +82,8 @@ async function searchSteamGame(gameName) {
         return {
             name: top.name,
             url: `https://store.steampowered.com/app/${top.id}`,
-            image: top.tiny_image
+            image: top.tiny_image,
+            hero: `https://cdn.cloudflare.steamstatic.com/steam/apps/${top.id}/header.jpg`,
         };
     }
 
