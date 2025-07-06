@@ -10,6 +10,8 @@ require("dotenv").config(); // Load environment variables from .env file
 const express = require("express");
 const app = express();
 
+const fetch = require('node-fetch');
+
 app.get("/", (req, res) => {
     res.send("Bot is online");
 });
@@ -36,16 +38,53 @@ client.once("ready", () => {
     });
 });
 
-function buildVoteEmbed(userVotes) {
+function buildVoteEmbed(userVotes, game = null) {
     const lines = [];
 
     for (const { username, voteEmoji } of userVotes.values()) {
         lines.push(`${voteEmoji} ${username}`);
     }
 
-    return new EmbedBuilder()
+    const embed = new EmbedBuilder()
         .setDescription(`\n\n${lines.join("\n")}\n\n`)
         .setColor("#f04a4a");
+
+    gameEmbed(embed, game);
+
+    return embed;
+}
+
+function gameEmbed(embed, game) {
+    if (game) {
+        embed.setTitle(`<:gamecontr:1390295965054796060> ${game.name}`)
+            .setURL(game.url)
+            .setThumbnail(game.image)
+            .addFields({
+                name: "Steam Page",
+                value: `[Click here to view ${game.name}](${game.url})`
+            });
+    }
+
+    return embed;
+}
+
+async function searchSteamGame(gameName) {
+    const query = encodeURIComponent(gameName);
+    const url = `https://store.steampowered.com/api/storesearch/?term=${query}&cc=us&l=en`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.items && data.items.length > 0) {
+        const top = data.items[0];
+        return {
+            name: top.name,
+            url: `https://store.steampowered.com/app/${top.id}`,
+            image: top.tiny_image
+        };
+    }
+
+    return null;
 }
 
 client.on(Events.InteractionCreate, async (interaction) => {
@@ -53,6 +92,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     if (interaction.commandName === "ons") {
         const mentions = [];
+        const gameName = interaction.options.getString('game');
+        let game = null;
+
+        if (gameName) {
+            game = await searchSteamGame(gameName);
+        }
 
         ["user1", "user2", "user3"].forEach((key) => {
             const u = interaction.options.getUser(key);
@@ -65,12 +110,15 @@ client.on(Events.InteractionCreate, async (interaction) => {
             .setDescription(`\n\n${body}\n\n`)
             .setColor("#f04a4a");
 
+        gameEmbed(embed, game);
+
         // AFTER replying with the message and embed
         const reply = await interaction.reply({
             content:
-                "<:ons:1388078229734035537>  <:taks:1388078418800934985> <:ons:1388078229734035537>",
+                "<:ons:1388078229734035537> <:taks:1388078418800934985> <:ons:1388078229734035537>",
             embeds: [embed],
         });
+
         const sentMessage = await interaction.fetchReply();
         const postUrl = `https://discord.com/channels/${interaction.guild.id}/${interaction.channel.id}/${sentMessage.id}`;
 
@@ -83,7 +131,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
         mentions.forEach((u) => {
             // Extract username from mention string
             const mentionMatch = u.match(/^<@!?(\d+)>$/);
-
             const userId = mentionMatch ? mentionMatch[1] : null;
 
             if (userId) {
@@ -105,13 +152,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
         collector.on("collect", async (reaction, user) => {
             console.log("collector on");
             const emoji = reaction.emoji.name;
-            // const prevEmoji = userVotes.get(user.id);
             const prevVote = userVotes.get(user.id);
             console.log(prevVote);
 
             // If user already voted with the other emoji, remove their previous reaction
             if (prevVote && prevVote.voteEmoji !== emoji) {
-                console.log("1");
                 const prevReaction = sentMessage.reactions.cache.get(
                     prevVote.voteEmoji,
                 );
@@ -123,21 +168,16 @@ client.on(Events.InteractionCreate, async (interaction) => {
                     );
                 }
             } else if (!prevVote) {
-                console.log("2");
                 console.log(`✅ ${user.username} voted ${emoji}`);
             }
-
-            // const display = user.username; // tag = full name#0000
 
             userVotes.set(user.id, {
                 voteEmoji: emoji,
                 username: user.toString(),
             });
 
-            const updatedEmbed = buildVoteEmbed(userVotes);
+            const updatedEmbed = buildVoteEmbed(userVotes, game);
             await sentMessage.edit({ embeds: [updatedEmbed] });
-
-            // userVotes.set(user.id, emoji);
         });
 
         collector.on("end", () => {
@@ -149,13 +189,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             console.log(`📊 Voting complete. Post: ${postUrl} \n\nTally:`);
             console.log(`✅ Yes: ${results["✅"]}`);
             console.log(`❌ No:  ${results["❌"]}`);
-
-            res.send(`📊 Voting complete. Post: ${postUrl} \n\nTally:`);
-            res.send(`✅ Yes: ${results["✅"]}`);
-            res.send(`❌ No:  ${results["❌"]}`);
         });
-
-        // await interaction.reply({embeds: [embed] });
     }
 });
 
