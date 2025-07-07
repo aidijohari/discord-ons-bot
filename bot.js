@@ -7,10 +7,11 @@ const {
 } = require("discord.js");
 require("dotenv").config(); // Load environment variables from .env file
 
-const express = require("express");
-const app = express();
+// const express = require("express");
+// const app = express();
 
 // const fetch = require('node-fetch');
+<<<<<<< HEAD
 const PORT = process.env.PORT || 3000
 
 app.get("/", (req, res) => {
@@ -20,7 +21,20 @@ app.get("/", (req, res) => {
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server is running on port ${PORT}`);
 });
+=======
 
+// app.get("/", (req, res) => {
+//     res.send("Bot is online");
+// });
+
+// app.listen(3000, () => {
+//     console.log("Server is running on port 3000");
+// });
+>>>>>>> 7dc1796fbe072298b7956a00ea8c5be445a64d3d
+
+/* TODO */
+// when notfound, collector not work
+ 
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -34,12 +48,12 @@ client.once("ready", () => {
     console.log(`Logged in as ${client.user.tag}`);
 
     client.user.setPresence({
-        activities: [{ name: "👀 Watching over the server" }],
+        activities: [{ name: "watcher for all those that are ons 🤲" }],
         status: "online",
     });
 });
 
-function buildVoteEmbed(userVotes, game = null) {
+function buildVoteEmbed(userVotes, game) {
     const lines = [];
 
     for (const { username, voteEmoji } of userVotes.values()) {
@@ -51,21 +65,7 @@ function buildVoteEmbed(userVotes, game = null) {
         .setColor("#f04a4a");
 
     gameEmbed(embed, game);
-
-    return embed;
-}
-
-function gameEmbed(embed, game) {
-    if (game) {
-        embed.setTitle(`<:gamecontr:1390295965054796060> ${game.name}`)
-            .setURL(game.url)
-            .setThumbnail(game.image)
-            .addFields({
-                name: "Steam Page",
-                value: `[Click here to view ${game.name}](${game.url})`
-            })
-            .setImage(game.hero);
-    }
+    console.log(game);
 
     return embed;
 }
@@ -73,10 +73,10 @@ function gameEmbed(embed, game) {
 async function searchSteamGame(gameName) {
     const query = encodeURIComponent(gameName);
     const url = `https://store.steampowered.com/api/storesearch/?term=${query}&cc=us&l=en`;
-
+    
     const res = await fetch(url);
     const data = await res.json();
-
+    
     if (data.items && data.items.length > 0) {
         const top = data.items[0];
         return {
@@ -86,8 +86,23 @@ async function searchSteamGame(gameName) {
             hero: `https://cdn.cloudflare.steamstatic.com/steam/apps/${top.id}/header.jpg`,
         };
     }
+    return {notfound: gameName};
+}
 
-    return null;
+function gameEmbed(embed, game) {
+    // if (game) {
+    embed.setTitle(`<:gamecontr:1390295965054796060> ${game?.name ?? `${game.notfound} <steam game not found>`}`)
+        .setURL(game?.url)
+        .setThumbnail(game?.image)
+        .setImage(game?.hero);
+        if(game?.name && game?.url){
+            embed.addFields({
+                name: "Steam Page",
+                value: `[Click here to view ${game?.name}](${game?.url})`
+            })
+        }
+    // }
+    return embed;
 }
 
 client.on(Events.InteractionCreate, async (interaction) => {
@@ -144,7 +159,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             }
         });
 
-        embed = buildVoteEmbed(userVotes);
+        embed = buildVoteEmbed(userVotes, game);
 
         const collector = sentMessage.createReactionCollector({
             filter: (reaction, user) =>
@@ -156,7 +171,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             console.log("collector on");
             const emoji = reaction.emoji.name;
             const prevVote = userVotes.get(user.id);
-            console.log(prevVote);
+            console.log("prevVote:", prevVote);
 
             // If user already voted with the other emoji, remove their previous reaction
             if (prevVote && prevVote.voteEmoji !== emoji) {
@@ -167,7 +182,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 if (prevReaction) {
                     await prevReaction.users.remove(user.id);
                     console.log(
-                        `🧹 ${user.username} switched from ${prevVote} to ${emoji}`,
+                        `🧹 ${user.username} switched from ${prevVote.voteEmoji} to ${emoji}`,
                     );
                 }
             } else if (!prevVote) {
@@ -189,7 +204,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 if (results[voteEmoji] !== undefined) results[voteEmoji]++;
             }
 
-            console.log(`📊 Voting complete. Post: ${postUrl} \n\nTally:`);
+            console.log(`📊 Voting complete. Post: ${postUrl} \nTally:`);
             console.log(`✅ Yes: ${results["✅"]}`);
             console.log(`❌ No:  ${results["❌"]}`);
         });
