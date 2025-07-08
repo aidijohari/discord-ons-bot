@@ -60,7 +60,7 @@ function buildVoteEmbed(userVotes, game) {
         .setColor("#f04a4a");
 
     gameEmbed(embed, game);
-    console.log(game);
+    // console.log(game);
 
     return embed;
 }
@@ -135,9 +135,15 @@ client.on(Events.InteractionCreate, async (interaction) => {
         const sentMessage = await interaction.fetchReply();
         const postUrl = `https://discord.com/channels/${interaction.guild.id}/${interaction.channel.id}/${sentMessage.id}`;
 
-        await sentMessage.react("✅");
-        await sentMessage.react("❌");
-        await interaction.channel.send(`${mentions.join(" ")}`);
+        setTimeout(async () => {
+            try {
+                await sentMessage.react("✅");
+                await sentMessage.react("❌");
+                await interaction.channel.send(`${mentions.join(" ")}`);
+            } catch(err) {
+                console.log("send reaction error: ", err)
+            }
+        }, 1000);
 
         const userVotes = new Map();
 
