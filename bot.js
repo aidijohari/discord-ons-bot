@@ -53,7 +53,7 @@ function buildVoteEmbed(userVotes, game) {
         .setColor("#f04a4a");
 
     gameEmbed(embed, game);
-    console.log(game);
+    // console.log(game);
 
     return embed;
 }
