@@ -95,6 +95,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     if (interaction.commandName === "ons") {
         const mentions = [];
+        const users = [
+            interaction.options.getUser('user1'),
+            interaction.options.getUser('user2'),
+            interaction.options.getUser('user3')
+        ].filter(Boolean)
         const gameName = interaction.options.getString('game');
         let game = null;
 
@@ -122,18 +127,28 @@ client.on(Events.InteractionCreate, async (interaction) => {
             embeds: [embed],
         });
 
+        /* General Logging */
+        console.log(`---------------------`);
+        console.log(`🔛 started`);
+        console.log(`Game: ${game.name}`);
+        console.log(`Users: ${users.map(u => u.username).join(", ")}`)
+        console.log(`---------------------`);
+        /* *** */
+
         const sentMessage = await interaction.fetchReply();
         const postUrl = `https://discord.com/channels/${interaction.guild.id}/${interaction.channel.id}/${sentMessage.id}`;
 
-        setTimeout(async () => {
+        setTimeout(async () => { //timeout for discord android blank emoji (does not fix issue)
             try {
-                await sentMessage.react("✅");
-                await sentMessage.react("❌");
+                const emojiOns = "🟢"; //previously ✅
+                const emojiTaks = "🔴"; //previously ❌
+                await sentMessage.react(emojiOns.normalize()); //normalize for discord android blank emoji (does not fix issue)
+                await sentMessage.react(emojiTaks.normalize());
                 await interaction.channel.send(`${mentions.join(" ")}`);
             } catch(err) {
-                console.log("send reaction error: ", err)
+                console.log("send reaction error: ", err);
             }
-        }, 1000);
+        }, 500);
 
         const userVotes = new Map();
 
@@ -145,7 +160,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             if (userId) {
                 userVotes.set(userId, {
                     voteEmoji: "❌",
-                    username: u.replace(`/^<@!?`, "@").replace(`/>$/`, ""),
+                    username: u.replace(`/^<@!?`, "@").replace(`/>$/`, "")
                 });
             }
         });
@@ -154,17 +169,18 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
         const collector = sentMessage.createReactionCollector({
             filter: (reaction, user) =>
-                !user.bot && ["✅", "❌"].includes(reaction.emoji.name),
+                !user.bot && ["🟢", "🔴"].includes(reaction.emoji.name),
             time: 24 * 60 * 60 * 1000,
         });
 
         collector.on("collect", async (reaction, user) => {
-            console.log("collector on");
+            // console.log("collector on");
             const emoji = reaction.emoji.name;
             const prevVote = userVotes.get(user.id);
-            console.log("prevVote:", prevVote);
+            // console.log(`➡️  ${user.username} prevVote:`, prevVote?.voteEmoji ?? 'none');
 
             // If user already voted with the other emoji, remove their previous reaction
+            console.log(`➡️  ${user.username} voted ${emoji}`);
             if (prevVote && prevVote.voteEmoji !== emoji) {
                 const prevReaction = sentMessage.reactions.cache.get(
                     prevVote.voteEmoji,
@@ -176,9 +192,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
                         `🧹 ${user.username} switched from ${prevVote.voteEmoji} to ${emoji}`,
                     );
                 }
-            } else if (!prevVote) {
-                console.log(`✅ ${user.username} voted ${emoji}`);
-            }
+            } 
 
             userVotes.set(user.id, {
                 voteEmoji: emoji,
@@ -190,14 +204,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
         });
 
         collector.on("end", () => {
-            const results = { "✅": 0, "❌": 0 };
+            const results = { "🟢": 0, "🔴": 0 };
             for (const { voteEmoji } of userVotes.values()) {
                 if (results[voteEmoji] !== undefined) results[voteEmoji]++;
             }
 
             console.log(`📊 Voting complete. Post: ${postUrl} \nTally:`);
-            console.log(`✅ Yes: ${results["✅"]}`);
-            console.log(`❌ No:  ${results["❌"]}`);
+            console.log(`✅ Yes: ${results["🟢"]}`);
+            console.log(`❌ No:  ${results["🔴"]}`);
         });
     }
 });
