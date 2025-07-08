@@ -19,9 +19,6 @@ require("dotenv").config(); // Load environment variables from .env file
 // app.listen(3000, () => {
 //     console.log("Server is running on port 3000");
 // });
-
-/* TODO */
-// when notfound, collector not work
  
 const client = new Client({
     intents: [
@@ -128,9 +125,15 @@ client.on(Events.InteractionCreate, async (interaction) => {
         const sentMessage = await interaction.fetchReply();
         const postUrl = `https://discord.com/channels/${interaction.guild.id}/${interaction.channel.id}/${sentMessage.id}`;
 
-        await sentMessage.react("✅");
-        await sentMessage.react("❌");
-        await interaction.channel.send(`${mentions.join(" ")}`);
+        setTimeout(async () => {
+            try {
+                await sentMessage.react("✅");
+                await sentMessage.react("❌");
+                await interaction.channel.send(`${mentions.join(" ")}`);
+            } catch(err) {
+                console.log("send reaction error: ", err)
+            }
+        }, 1000);
 
         const userVotes = new Map();
 
