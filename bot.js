@@ -5,19 +5,6 @@ const {
     EmbedBuilder
 } = require("discord.js");
 require("dotenv").config(); // Load environment variables from .env file
-
-// const express = require("express");
-// const app = express();
-
-// const fetch = require('node-fetch');
-
-// app.get("/", (req, res) => {
-//     res.send("Bot is online");
-// });
-
-// app.listen(3000, () => {
-//     console.log("Server is running on port 3000");
-// });
  
 const client = new Client({
     intents: [
