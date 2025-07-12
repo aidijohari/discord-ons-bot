@@ -98,7 +98,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
         const users = [
             interaction.options.getUser('user1'),
             interaction.options.getUser('user2'),
-            interaction.options.getUser('user3')
+            interaction.options.getUser('user3'),
+            interaction.options.getUser('user4')
         ].filter(Boolean)
         const gameName = interaction.options.getString('game');
         let game = null;
