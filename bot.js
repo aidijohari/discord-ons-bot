@@ -2,37 +2,11 @@ const {
     Client,
     GatewayIntentBits,
     Events,
-    EmbedBuilder
+    EmbedBuilder,
+    Collection,
 } = require("discord.js");
+
 require("dotenv").config(); // Load environment variables from .env file
-
-const express = require("express");
-const app = express();
-
-// const fetch = require('node-fetch');
-
-const PORT = process.env.PORT || 3001
-
-// app.get("/", (req, res) => {
-//     res.send("Bot is online");
-// });
-
-// app.listen(3000, () => {
-//     console.log("Server is running on port 3000");
-// });
-
-app.get("/", (req, res) => {
-    res.send("🤖 Bot is online");
-});
-
-app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server is running on port ${PORT}`);
-});
-
-app.get("/health", (req, res) => {
-  res.status(200).send("OK");
-});
-
 
 const client = new Client({
     intents: [
@@ -112,8 +86,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         const users = [
             interaction.options.getUser('user1'),
             interaction.options.getUser('user2'),
-            interaction.options.getUser('user3'),
-            interaction.options.getUser('user4')
+            interaction.options.getUser('user3')
         ].filter(Boolean)
         const gameName = interaction.options.getString('game');
         let game = null;
