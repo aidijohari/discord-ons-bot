@@ -12,7 +12,7 @@ const app = express();
 
 // const fetch = require('node-fetch');
 
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 3001
 
 // app.get("/", (req, res) => {
 //     res.send("Bot is online");
