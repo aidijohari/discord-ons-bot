@@ -94,7 +94,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             game = await searchSteamGame(gameName);
         }
 
-        ["user1", "user2", "user3"].forEach((key) => {
+        ["user1", "user2", "user3", "user4"].forEach((key) => {
             const u = interaction.options.getUser(key);
             if (u) mentions.push(u.toString());
         });
