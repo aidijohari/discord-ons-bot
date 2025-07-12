@@ -140,8 +140,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
         setTimeout(async () => { //timeout for discord android blank emoji (does not fix issue)
             try {
-                const emojiOns = "🟢"; //previously ✅
-                const emojiTaks = "🔴"; //previously ❌
+                const emojiOns = "✅"; //previously ✅
+                const emojiTaks = "❌"; //previously ❌
                 await sentMessage.react(emojiOns.normalize()); //normalize for discord android blank emoji (does not fix issue)
                 await sentMessage.react(emojiTaks.normalize());
                 await interaction.channel.send(`${mentions.join(" ")}`);
@@ -169,7 +169,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
         const collector = sentMessage.createReactionCollector({
             filter: (reaction, user) =>
-                !user.bot && ["🟢", "🔴"].includes(reaction.emoji.name),
+                !user.bot && ["✅", "❌"].includes(reaction.emoji.name),
             time: 24 * 60 * 60 * 1000,
         });
 
@@ -204,14 +204,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
         });
 
         collector.on("end", () => {
-            const results = { "🟢": 0, "🔴": 0 };
+            const results = { "✅": 0, "❌": 0 };
             for (const { voteEmoji } of userVotes.values()) {
                 if (results[voteEmoji] !== undefined) results[voteEmoji]++;
             }
 
             console.log(`📊 Voting complete. Post: ${postUrl} \nTally:`);
-            console.log(`✅ Yes: ${results["🟢"]}`);
-            console.log(`❌ No:  ${results["🔴"]}`);
+            console.log(`✅ Yes: ${results["✅"]}`);
+            console.log(`❌ No:  ${results["❌"]}`);
         });
     }
 });
