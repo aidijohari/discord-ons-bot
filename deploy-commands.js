@@ -6,28 +6,43 @@ const commands = [
   new SlashCommandBuilder()
     .setName('ons')
     .setDescription('Replies with ons!')
-    .addStringOption(opt => 
+    .addStringOption(opt =>
       opt.setName('game')
-      .setDescription('Name of steam game (optional)')
-      .setRequired(true)
+        .setDescription('Name of steam game (optional)')
+        .setRequired(true)
     )
+    //datetime
+    .addStringOption(option =>
+      option.setName('day')
+        .setDescription('Today/Tomorrow')
+        .setRequired(true)
+        .addChoices(
+          { name: 'Today', value: new Date().toISOString().split('T')[0] },
+          { name: 'Tomorrow', value: new Date(Date.now() + 86400000).toISOString().split('T')[0] }
+        ))
+    .addStringOption(option =>
+      option.setName('time')
+        .setDescription('Enter time in HH:mm format (24h)')
+        .setRequired(true)
+    )
+    //users
     .addUserOption(opt =>
-        opt.setName('user1')
+      opt.setName('user1')
         .setDescription(`Who's onboard? @1`)
         .setRequired(true)
     )
     .addUserOption(opt =>
-        opt.setName('user2')
+      opt.setName('user2')
         .setDescription(`Who's onboard? @2`)
         .setRequired(false)
     )
     .addUserOption(opt =>
-        opt.setName('user3')
+      opt.setName('user3')
         .setDescription(`Who's onboard? @3`)
         .setRequired(false)
     )
-        .addUserOption(opt =>
-        opt.setName('user4')
+    .addUserOption(opt =>
+      opt.setName('user4')
         .setDescription(`Who's onboard? @4`)
         .setRequired(false)
     )

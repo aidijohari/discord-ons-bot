@@ -103,8 +103,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
         const body = mentions.map((u) => `❌ ${u}`).join("\n");
 
+        const day = interaction.options.getString('day'); // e.g., '2025-09-05'
+        const time = interaction.options.getString('time'); // e.g., '14:30'
+        const dateTimeString = `${day}T${time}:00`
+        const timestamp = Math.floor(new Date(dateTimeString).getTime() / 1000);
+        const discordTime = `<t:${timestamp}:R>`;
+
         let embed = new EmbedBuilder()
-            .setDescription(`\n\n${body}\n\n`)
+            .setDescription(`\n\n Time: ${discordTime} \n\n ${body} \n\n`)
             .setColor("#f04a4a");
 
         gameEmbed(embed, game);
