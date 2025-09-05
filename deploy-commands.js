@@ -26,7 +26,7 @@ const commands = [
         .setDescription(`Who's onboard? @3`)
         .setRequired(false)
     )
-        .addUserOption(opt =>
+    .addUserOption(opt =>
         opt.setName('user4')
         .setDescription(`Who's onboard? @4`)
         .setRequired(false)
