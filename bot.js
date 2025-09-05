@@ -129,11 +129,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
         const scheduledTime = [formattedDate, timestamp]
 
         // time logs
-        // console.log(day)
-        // console.log(time)
-        // console.log(dateTimeString)
-        // console.log(timestamp)
-        // console.log(discordTime)
+        console.log(day)
+        console.log(time)
+        console.log(dateTimeString)
+        console.log(timestamp)
+        console.log(discordTime)
 
         let embed = new EmbedBuilder()
             .addFields({
