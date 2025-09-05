@@ -2,6 +2,11 @@ const { REST, Routes, SlashCommandBuilder, StringSelectMenuBuilder } = require('
 const dotenv = require('dotenv');
 dotenv.config(); // loads .env file
 
+//for timezone
+const offsetMs = 8 * 60 * 60 * 1000; // GMT+8 offset in milliseconds
+const now = new Date(Date.now() + offsetMs);
+const tomorrow = new Date(Date.now() + offsetMs + 86400000);
+
 const commands = [
   new SlashCommandBuilder()
     .setName('ons')
@@ -17,8 +22,8 @@ const commands = [
         .setDescription('Today/Tomorrow')
         .setRequired(true)
         .addChoices(
-          { name: 'Today', value: new Date().toISOString().split('T')[0] },
-          { name: 'Tomorrow', value: new Date(Date.now() + 86400000).toISOString().split('T')[0] }
+          { name: 'Today', value: now.toISOString().split('T')[0] },
+          { name: 'Tomorrow', value: tomorrow.toISOString().split('T')[0] }
         ))
     .addStringOption(option =>
       option.setName('time')

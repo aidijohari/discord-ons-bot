@@ -109,6 +109,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
         const timestamp = Math.floor(new Date(dateTimeString).getTime() / 1000);
         const discordTime = `<t:${timestamp}:R>`;
 
+        console.log(day)
+        console.log(time)
+        console.log(dateTimeString)
+        console.log(timestamp)
+        console.log(discordTime)
+
         let embed = new EmbedBuilder()
             .setDescription(`\n\n Time: ${discordTime} \n\n ${body} \n\n`)
             .setColor("#f04a4a");
