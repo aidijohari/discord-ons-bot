@@ -5,7 +5,7 @@ const {
     EmbedBuilder
 } = require("discord.js");
 require("dotenv").config(); // Load environment variables from .env file
- 
+
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -24,7 +24,7 @@ client.once("ready", () => {
     });
 });
 
-function buildVoteEmbed(userVotes, game) {
+function buildVoteEmbed(userVotes, game, scheduledTime) {
     const lines = [];
 
     for (const { username, voteEmoji } of userVotes.values()) {
@@ -32,6 +32,11 @@ function buildVoteEmbed(userVotes, game) {
     }
 
     const embed = new EmbedBuilder()
+        .addFields({
+            name: '🕒 Scheduled Time',
+            value: `${scheduledTime[0]} - <t:${scheduledTime[1]}:R>`,
+            inline: false
+        })
         .setDescription(`\n\n${lines.join("\n")}\n\n`)
         .setColor("#f04a4a");
 
@@ -44,10 +49,10 @@ function buildVoteEmbed(userVotes, game) {
 async function searchSteamGame(gameName) {
     const query = encodeURIComponent(gameName);
     const url = `https://store.steampowered.com/api/storesearch/?term=${query}&cc=us&l=en`;
-    
+
     const res = await fetch(url);
     const data = await res.json();
-    
+
     if (data.items && data.items.length > 0) {
         const top = data.items[0];
         return {
@@ -57,7 +62,7 @@ async function searchSteamGame(gameName) {
             hero: `https://cdn.cloudflare.steamstatic.com/steam/apps/${top.id}/header.jpg`,
         };
     }
-    return {notfound: gameName};
+    return { notfound: gameName };
 }
 
 function gameEmbed(embed, game) {
@@ -66,12 +71,12 @@ function gameEmbed(embed, game) {
         .setURL(game?.url)
         .setThumbnail(game?.image)
         .setImage(game?.hero);
-        if(game?.name && game?.url){
-            embed.addFields({
-                name: "Steam Page",
-                value: `[Click here to view ${game?.name}](${game?.url})`
-            })
-        }
+    if (game?.name && game?.url) {
+        embed.addFields({
+            name: "Steam Page",
+            value: `[Click here to view ${game?.name}](${game?.url})`
+        })
+    }
     // }
     return embed;
 }
@@ -80,6 +85,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     if (!interaction.isChatInputCommand()) return;
 
     if (interaction.commandName === "ons") {
+        await interaction.deferReply();
         const mentions = [];
         const users = [
             interaction.options.getUser('user1'),
@@ -107,20 +113,40 @@ client.on(Events.InteractionCreate, async (interaction) => {
         const timestamp = Math.floor(new Date(dateTimeString).getTime() / 1000);
         const discordTime = `<t:${timestamp}:R>`;
 
-        console.log(day)
-        console.log(time)
-        console.log(dateTimeString)
-        console.log(timestamp)
-        console.log(discordTime)
+        const date = new Date(timestamp * 1000); // Convert Unix timestamp to Date
+        const formattedDate = new Intl.DateTimeFormat('en-GB', {
+            day: 'numeric',
+            month: 'short',
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true,
+            timeZone: 'Asia/Kuala_Lumpur',
+            timeZoneName: 'short'
+        }).format(date);
+
+        const scheduledTime = [formattedDate, timestamp]
+
+        // time logs
+        // console.log(day)
+        // console.log(time)
+        // console.log(dateTimeString)
+        // console.log(timestamp)
+        // console.log(discordTime)
 
         let embed = new EmbedBuilder()
-            .setDescription(`\n\n Time: ${discordTime} \n\n ${body} \n\n`)
+            .addFields({
+                name: '🕒 Scheduled Time',
+                value: `${formattedDate} - <t:${timestamp}:R>`,
+                inline: false
+
+            })
+            .setDescription(`\n\n ${body} \n\n`)
             .setColor("#f04a4a");
 
         gameEmbed(embed, game);
 
         // AFTER replying with the message and embed
-        const reply = await interaction.reply({
+        const reply = await interaction.editReply({
             content:
                 "<:ons:1388078229734035537> <:taks:1388078418800934985> <:ons:1388078229734035537>",
             embeds: [embed],
@@ -144,7 +170,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 await sentMessage.react(emojiOns.normalize()); //normalize for discord android blank emoji (does not fix issue)
                 await sentMessage.react(emojiTaks.normalize());
                 await interaction.channel.send(`${mentions.join(" ")}`);
-            } catch(err) {
+            } catch (err) {
                 console.log("send reaction error: ", err);
             }
         }, 500);
@@ -164,7 +190,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             }
         });
 
-        embed = buildVoteEmbed(userVotes, game);
+        embed = buildVoteEmbed(userVotes, game, scheduledTime);
 
         const collector = sentMessage.createReactionCollector({
             filter: (reaction, user) =>
@@ -191,14 +217,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
                         `🧹 ${user.username} switched from ${prevVote.voteEmoji} to ${emoji}`,
                     );
                 }
-            } 
+            }
 
             userVotes.set(user.id, {
                 voteEmoji: emoji,
                 username: user.toString(),
             });
 
-            const updatedEmbed = buildVoteEmbed(userVotes, game);
+            const updatedEmbed = buildVoteEmbed(userVotes, game, scheduledTime);
             await sentMessage.edit({ embeds: [updatedEmbed] });
         });
 
