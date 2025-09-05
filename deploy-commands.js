@@ -27,7 +27,7 @@ const commands = [
         ))
     .addStringOption(option =>
       option.setName('time')
-        .setDescription('Enter time in HH:mm format (24h)')
+        .setDescription('Enter time in HH:mm format (24h) GMT+8')
         .setRequired(true)
     )
     //users
