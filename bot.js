@@ -107,8 +107,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
         const body = mentions.map((u) => `❌ ${u}`).join("\n");
 
-        const day = interaction.options.getString('day'); // e.g., '2025-09-05'
-        console.log(day)
+        const day = interaction.options.getString('day'); // e.g., 'today' or 'tomorrow'
         const offsetMs = 8 * 60 * 60 * 1000; // GMT+8 offset in milliseconds
         let today;
         let tomorrow;
@@ -122,9 +121,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
         const time = interaction.options.getString('time'); // e.g., '14:30'
         const dateTimeString = `${selectedDay}T${time}:00`
+        const utcDate = new Date(dateTimeString);
+        const localDate = new Date(utcDate.getTime() - offsetMs);
         const timestamp = Math.floor(new Date(dateTimeString).getTime() / 1000);
 
-        const date = new Date(dateTimeString);
         const formattedDate = new Intl.DateTimeFormat('en-GB', {
             day: 'numeric',
             month: 'short',
@@ -133,7 +133,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             hour12: true,
             timeZone: 'Asia/Kuala_Lumpur',
             timeZoneName: 'short'
-        }).format(date);
+        }).format(localDate);
 
         const scheduledTime = [formattedDate, timestamp]
 
