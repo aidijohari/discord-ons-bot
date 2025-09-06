@@ -129,9 +129,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         // time logs
         console.log("day ", day)
         console.log("time ", time)
-        console.log("dateTimeString ", dateTimeString)
         console.log("timestamp ", timestamp)
-        console.log("date ", date)
         console.log("formattedDate ", formattedDate)
 
         let embed = new EmbedBuilder()
