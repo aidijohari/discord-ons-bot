@@ -5,6 +5,7 @@ const {
     EmbedBuilder
 } = require("discord.js");
 require("dotenv").config(); // Load environment variables from .env file
+const { DateTime } = require('luxon'); // for time conversions
 
 const client = new Client({
     intents: [
@@ -108,33 +109,21 @@ client.on(Events.InteractionCreate, async (interaction) => {
         const body = mentions.map((u) => `❌ ${u}`).join("\n");
 
         const day = interaction.options.getString('day'); // e.g., 'today' or 'tomorrow'
-        const offsetMs = 8 * 60 * 60 * 1000; // GMT+8 offset in milliseconds
-        let today;
-        let tomorrow;
-        if (day == 'today'){
-            today = new Date(Date.now() + offsetMs).toISOString().split('T')[0] ;
-        } else {
-            tomorrow = new Date(Date.now() + offsetMs + 86400000).toISOString().split('T')[0];
-        }
-        const selectedDay = today || tomorrow;
-        console.log("NOW: ", selectedDay);
-
         const time = interaction.options.getString('time'); // e.g., '14:30'
-        const dateTimeString = `${selectedDay}T${time}:00`
-        const utcDate = new Date(dateTimeString);
-        const localDate = new Date(utcDate.getTime() - offsetMs);
-        const timestamp = Math.floor(new Date(dateTimeString).getTime() / 1000);
 
-        const formattedDate = new Intl.DateTimeFormat('en-GB', {
-            day: 'numeric',
-            month: 'short',
-            hour: 'numeric',
-            minute: 'numeric',
-            hour12: true,
-            timeZone: 'Asia/Kuala_Lumpur',
-            timeZoneName: 'short'
-        }).format(localDate);
+        // Assume 'day' is either 'today' or 'tomorrow'
+        const baseDate = DateTime.now().setZone('Asia/Kuala_Lumpur');
+        const selectedDate = day === 'today' ? baseDate : baseDate.plus({ days: 1 });
 
+        // Combine with user input time (e.g. '14:30')
+        const [hour, minute] = time.split(':').map(Number);
+        const fullDateTime = selectedDate.set({ hour, minute, second: 0 });
+
+        // Get Discord timestamp
+        const timestamp = Math.floor(fullDateTime.toSeconds());
+
+        // Format for display
+        const formattedDate = fullDateTime.toFormat("d MMM yyyy, h:mm a ZZZZ"); // e.g. "6 Sep 2025, 2:30 PM GMT+8"
         const scheduledTime = [formattedDate, timestamp]
 
         // time logs
