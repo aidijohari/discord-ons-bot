@@ -110,10 +110,21 @@ client.on(Events.InteractionCreate, async (interaction) => {
         const body = mentions.map((u) => `❌ ${u}`).join("\n");
 
         const day = interaction.options.getString('day'); // e.g., '2025-09-05'
+        console.log(day)
+        const offsetMs = 8 * 60 * 60 * 1000; // GMT+8 offset in milliseconds
+        let today;
+        let tomorrow;
+        if (day == 'today'){
+            today = new Date(Date.now() + offsetMs).toISOString().split('T')[0] ;
+        } else {
+            tomorrow = new Date(Date.now() + offsetMs + 86400000).toISOString().split('T')[0];
+        }
+        const selectedDay = today || tomorrow;
+        console.log("NOW: ", selectedDay);
+
         const time = interaction.options.getString('time'); // e.g., '14:30'
-        const dateTimeString = `${day}T${time}:00`
+        const dateTimeString = `${selectedDay}T${time}:00`
         const timestamp = Math.floor(new Date(dateTimeString).getTime() / 1000);
-        const discordTime = `<t:${timestamp}:R>`;
 
         const date = new Date(dateTimeString);
         const formattedDate = new Intl.DateTimeFormat('en-GB', {
@@ -129,11 +140,20 @@ client.on(Events.InteractionCreate, async (interaction) => {
         const scheduledTime = [formattedDate, timestamp]
 
         // time logs
+<<<<<<< HEAD
         console.log(day)
         console.log(time)
         console.log(dateTimeString)
         console.log(timestamp)
         console.log(discordTime)
+=======
+        console.log("day ", day)
+        console.log("time ", time)
+        console.log("dateTimeString ", dateTimeString)
+        console.log("timestamp ", timestamp)
+        console.log("date ", date)
+        console.log("formattedDate ", formattedDate)
+>>>>>>> d5220d939ebeff8c7c4154515f4ab042817e6826
 
         let embed = new EmbedBuilder()
             .addFields({
