@@ -2,10 +2,8 @@ const {
     Client,
     GatewayIntentBits,
     Events,
-    EmbedBuilder,
-    Collection,
+    EmbedBuilder
 } = require("discord.js");
-
 require("dotenv").config(); // Load environment variables from .env file
 
 const client = new Client({
@@ -140,20 +138,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
         const scheduledTime = [formattedDate, timestamp]
 
         // time logs
-<<<<<<< HEAD
-        console.log(day)
-        console.log(time)
-        console.log(dateTimeString)
-        console.log(timestamp)
-        console.log(discordTime)
-=======
         console.log("day ", day)
         console.log("time ", time)
         console.log("dateTimeString ", dateTimeString)
         console.log("timestamp ", timestamp)
         console.log("date ", date)
         console.log("formattedDate ", formattedDate)
->>>>>>> d5220d939ebeff8c7c4154515f4ab042817e6826
 
         let embed = new EmbedBuilder()
             .addFields({
@@ -232,6 +222,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 const prevReaction = sentMessage.reactions.cache.get(
                     prevVote.voteEmoji,
                 );
+                // console.log(prevReaction)
                 if (prevReaction) {
                     await prevReaction.users.remove(user.id);
                     console.log(
