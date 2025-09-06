@@ -124,7 +124,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             hour12: true,
             timeZone: 'Asia/Kuala_Lumpur',
             timeZoneName: 'short'
-        }).format(date);
+        }).format(time);
 
         const scheduledTime = [formattedDate, timestamp]
 
