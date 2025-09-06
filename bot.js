@@ -115,7 +115,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         const timestamp = Math.floor(new Date(dateTimeString).getTime() / 1000);
         const discordTime = `<t:${timestamp}:R>`;
 
-        const date = new Date(timestamp * 1000); // Convert Unix timestamp to Date
+        const date = new Date(); // Convert Unix timestamp to Date
         const formattedDate = new Intl.DateTimeFormat('en-GB', {
             day: 'numeric',
             month: 'short',
@@ -124,7 +124,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             hour12: true,
             timeZone: 'Asia/Kuala_Lumpur',
             timeZoneName: 'short'
-        }).format(time);
+        }).format(date);
 
         const scheduledTime = [formattedDate, timestamp]
 
