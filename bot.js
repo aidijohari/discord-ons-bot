@@ -1,12 +1,10 @@
-const {
-    Client,
-    GatewayIntentBits,
-    Events,
-    EmbedBuilder
-} = require("discord.js");
-require("dotenv").config(); // Load environment variables from .env file
-const { DateTime } = require('luxon'); // for time conversions
+const { Client, GatewayIntentBits, Events, EmbedBuilder } = require("discord.js");
+const { DateTime } = require('luxon'); // for time zones and conversions
+const { gameEmbed, buildVoteEmbed, searchSteamGame } = require("./utils");
+const { ONS_EMOJI, TAKS_EMOJI, EMBED_COLOR, CUSTOM_ICONS } = require("./constants")
+require("dotenv").config();
 
+// === Client setup ===
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -18,136 +16,62 @@ const client = new Client({
 
 client.once("ready", () => {
     console.log(`Logged in as ${client.user.tag}`);
-
     client.user.setPresence({
-        activities: [{ name: "watcher for all those that are ons 🤲" }],
+        activities: [{ name: ", Eating, Loving" }],
         status: "online",
     });
 });
-
-function buildVoteEmbed(userVotes, game, scheduledTime) {
-    const lines = [];
-
-    for (const { username, voteEmoji } of userVotes.values()) {
-        lines.push(`${voteEmoji} ${username}`);
-    }
-
-    const embed = new EmbedBuilder()
-        .addFields({
-            name: '🕒 Scheduled Time',
-            value: `${scheduledTime[0]} - <t:${scheduledTime[1]}:R>`,
-            inline: false
-        })
-        .setDescription(`\n\n${lines.join("\n")}\n\n`)
-        .setColor("#f04a4a");
-
-    gameEmbed(embed, game);
-    // console.log(game);
-
-    return embed;
-}
-
-async function searchSteamGame(gameName) {
-    const query = encodeURIComponent(gameName);
-    const url = `https://store.steampowered.com/api/storesearch/?term=${query}&cc=us&l=en`;
-
-    const res = await fetch(url);
-    const data = await res.json();
-
-    if (data.items && data.items.length > 0) {
-        const top = data.items[0];
-        return {
-            name: top.name,
-            url: `https://store.steampowered.com/app/${top.id}`,
-            image: top.tiny_image,
-            hero: `https://cdn.cloudflare.steamstatic.com/steam/apps/${top.id}/header.jpg`,
-        };
-    }
-    return { notfound: gameName };
-}
-
-function gameEmbed(embed, game) {
-    // if (game) {
-    embed.setTitle(`<:gamecontr:1390295965054796060> ${game?.name ?? `${game.notfound} <steam game not found>`}`)
-        .setURL(game?.url)
-        .setThumbnail(game?.image)
-        .setImage(game?.hero);
-    if (game?.name && game?.url) {
-        embed.addFields({
-            name: "Steam Page",
-            value: `[Click here to view ${game?.name}](${game?.url})`
-        })
-    }
-    // }
-    return embed;
-}
 
 client.on(Events.InteractionCreate, async (interaction) => {
     if (!interaction.isChatInputCommand()) return;
 
     if (interaction.commandName === "ons") {
         await interaction.deferReply();
-        const mentions = [];
-        const users = [
-            interaction.options.getUser('user1'),
-            interaction.options.getUser('user2'),
-            interaction.options.getUser('user3'),
-            interaction.options.getUser('user4')
-        ].filter(Boolean)
-        const gameName = interaction.options.getString('game');
-        let game = null;
+        
+        const userKeys = ['user1', 'user2', 'user3', 'user4']
+        const users = userKeys.map(key => interaction.options.getUser(key)).filter(Boolean);
+        const mentions = users.map(x => x.toString());
+        const mentionsVoteList = mentions.map((u) => `${TAKS_EMOJI} ${u}`).join("\n");
 
-        if (gameName) {
-            game = await searchSteamGame(gameName);
-        }
-
-        ["user1", "user2", "user3", "user4"].forEach((key) => {
-            const u = interaction.options.getUser(key);
-            if (u) mentions.push(u.toString());
-        });
-
-        const body = mentions.map((u) => `❌ ${u}`).join("\n");
-
+        // Time calculations
         const day = interaction.options.getString('day'); // e.g., 'today' or 'tomorrow'
         const time = interaction.options.getString('time'); // e.g., '14:30'
-
-        // Assume 'day' is either 'today' or 'tomorrow'
-        const baseDate = DateTime.now().setZone('Asia/Kuala_Lumpur');
-        const selectedDate = day === 'today' ? baseDate : baseDate.plus({ days: 1 });
-
-        // Combine with user input time (e.g. '14:30')
+        const nowDate = DateTime.now().setZone('Asia/Kuala_Lumpur');
+        const dayDate = day === 'today' ? nowDate : nowDate.plus({ days: 1 }); // Assume 'day' is either 'today' or 'tomorrow'
         const [hour, minute] = time.split(':').map(Number);
-        const fullDateTime = selectedDate.set({ hour, minute, second: 0 });
-
-        // Get Discord timestamp
-        const timestamp = Math.floor(fullDateTime.toSeconds());
-
-        // Format for display
+        const fullDateTime = dayDate.set({ hour, minute, second: 0 });
+        const timestamp = Math.floor(fullDateTime.toSeconds()); // Get Discord timestamp
         const formattedDate = fullDateTime.toFormat("d MMM yyyy, h:mm a ZZZZ"); // e.g. "6 Sep 2025, 2:30 PM GMT+8"
         const scheduledTime = [formattedDate, timestamp]
 
-        // time logs
-        console.log("day ", day)
-        console.log("time ", time)
-        console.log("timestamp ", timestamp)
-        console.log("formattedDate ", formattedDate)
+        const gameName = interaction.options.getString('game');
+        let game = null;
+        if (gameName) {
+            try{
+                game = await searchSteamGame(gameName);
+            } catch(err) {
+                console.error("Steam search failed");
+            }
+        }
 
+        // ******** //
+        // TODO:    
+        //  - embed is set multiple times, needs cleanup
+        //  - scheduleTime is also set multiple times
+        //  - embed ideally should be set once, buildVoteEmbed should just update user/mention/votes fields
+        // ******** //
         let embed = new EmbedBuilder()
             .addFields({
                 name: '🕒 Scheduled Time',
                 value: `${formattedDate} - <t:${timestamp}:R>`,
                 inline: false
-
             })
-            .setDescription(`\n\n ${body} \n\n`)
-            .setColor("#f04a4a");
-
+            .setDescription(`\n\n ${mentionsVoteList} \n\n`)
+            .setColor(EMBED_COLOR);
         gameEmbed(embed, game);
 
-        // AFTER replying with the message and embed
-        const reply = await interaction.editReply({
-            content:
-                "<:ons:1388078229734035537> <:taks:1388078418800934985> <:ons:1388078229734035537>",
+        await interaction.editReply({
+            content: `${CUSTOM_ICONS.ONS} ${CUSTOM_ICONS.TAKS} ${CUSTOM_ICONS.ONS}`,
             embeds: [embed],
         });
 
@@ -162,47 +86,37 @@ client.on(Events.InteractionCreate, async (interaction) => {
         const sentMessage = await interaction.fetchReply();
         const postUrl = `https://discord.com/channels/${interaction.guild.id}/${interaction.channel.id}/${sentMessage.id}`;
 
-        setTimeout(async () => { //timeout for discord android blank emoji (does not fix issue)
+        setTimeout(async () => {
             try {
-                const emojiOns = "✅"; //previously ✅
-                const emojiTaks = "❌"; //previously ❌
-                await sentMessage.react(emojiOns.normalize()); //normalize for discord android blank emoji (does not fix issue)
-                await sentMessage.react(emojiTaks.normalize());
+                await sentMessage.react(ONS_EMOJI.normalize());
+                await sentMessage.react(TAKS_EMOJI.normalize());
                 await interaction.channel.send(`${mentions.join(" ")}`);
             } catch (err) {
                 console.log("send reaction error: ", err);
             }
         }, 500);
 
+        // Initialize votes
         const userVotes = new Map();
-
-        mentions.forEach((u) => {
-            // Extract username from mention string
-            const mentionMatch = u.match(/^<@!?(\d+)>$/);
-            const userId = mentionMatch ? mentionMatch[1] : null;
-
-            if (userId) {
-                userVotes.set(userId, {
-                    voteEmoji: "❌",
-                    username: u.replace(`/^<@!?`, "@").replace(`/>$/`, "")
-                });
-            }
+        users.forEach(user => {
+            userVotes.set(user.id, {
+                voteEmoji: TAKS_EMOJI,
+                username: user.toString()
+            });
         });
 
         embed = buildVoteEmbed(userVotes, game, scheduledTime);
 
         const collector = sentMessage.createReactionCollector({
             filter: (reaction, user) =>
-                !user.bot && ["✅", "❌"].includes(reaction.emoji.name),
-            time: 24 * 60 * 60 * 1000,
+                !user.bot && [ONS_EMOJI, TAKS_EMOJI].includes(reaction.emoji.name),
+                time: 24 * 60 * 60 * 1000,
         });
 
         collector.on("collect", async (reaction, user) => {
             // console.log("collector on");
             const emoji = reaction.emoji.name;
             const prevVote = userVotes.get(user.id);
-            // console.log(`➡️  ${user.username} prevVote:`, prevVote?.voteEmoji ?? 'none');
-
             // If user already voted with the other emoji, remove their previous reaction
             console.log(`➡️  ${user.username} voted ${emoji}`);
             if (prevVote && prevVote.voteEmoji !== emoji) {
@@ -217,25 +131,22 @@ client.on(Events.InteractionCreate, async (interaction) => {
                     );
                 }
             }
-
             userVotes.set(user.id, {
                 voteEmoji: emoji,
                 username: user.toString(),
             });
-
             const updatedEmbed = buildVoteEmbed(userVotes, game, scheduledTime);
             await sentMessage.edit({ embeds: [updatedEmbed] });
         });
 
         collector.on("end", () => {
-            const results = { "✅": 0, "❌": 0 };
+            const results = { [ONS_EMOJI]: 0, [TAKS_EMOJI]: 0 };
             for (const { voteEmoji } of userVotes.values()) {
                 if (results[voteEmoji] !== undefined) results[voteEmoji]++;
             }
-
             console.log(`📊 Voting complete. Post: ${postUrl} \nTally:`);
-            console.log(`✅ Yes: ${results["✅"]}`);
-            console.log(`❌ No:  ${results["❌"]}`);
+            console.log(`${ONS_EMOJI} Yes: ${results[ONS_EMOJI]}`);
+            console.log(`${TAKS_EMOJI} No:  ${results[TAKS_EMOJI]}`);
         });
     }
 });
