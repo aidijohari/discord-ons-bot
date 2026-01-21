@@ -17,7 +17,7 @@ const client = new Client({
 client.once("ready", () => {
     console.log(`Logged in as ${client.user.tag}`);
     client.user.setPresence({
-        activities: [{ name: ", Eating, Loving" }],
+        activities: "🔴🟢🔵🟡🟣",
         status: "online",
     });
 });
