@@ -20,7 +20,7 @@ client.once("ready", () => {
     console.log(`Logged in as ${client.user.tag}`);
 
     client.user.setPresence({
-        activities: [{ name: "watcher for all those that are ons 🤲" }],
+        activities: [{ name: "🔴🟢🔵🟡🟣" }],
         status: "online",
     });
 });
